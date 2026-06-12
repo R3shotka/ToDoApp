@@ -44,13 +44,13 @@ public class UsersController : ControllerBase
 
     // POST: api/users/login
     [HttpPost("login")]
-    public async Task<ActionResult<UserDto>> Login([FromBody] LoginUserDto dto)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginUserDto dto)
     {
-        var user = await _userService.LoginAsync(dto);
+        var response = await _userService.LoginAsync(dto);
 
-        if (user == null)
+        if (response == null)
             return Unauthorized(new { message = "Invalid username or password" });
 
-        return Ok(user);
+        return Ok(response);
     }
 }

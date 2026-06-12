@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using ToDoApp.BusinessLogic.DTOs;
 using ToDoApp.BusinessLogic.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ToDoApp.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
@@ -19,7 +22,7 @@ public class CategoriesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var categories = await _categoryService.GetAllByUserAsync(userId);
         return Ok(categories);
@@ -29,7 +32,7 @@ public class CategoriesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CategoryDto>> GetById(int id)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var category = await _categoryService.GetByIdAsync(id, userId);
 
@@ -43,7 +46,7 @@ public class CategoriesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CreateCategoryDto dto)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         try
         {
@@ -60,7 +63,7 @@ public class CategoriesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<CategoryDto>> Update(int id, [FromBody] UpdateCategoryDto dto)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         try
         {
@@ -81,7 +84,7 @@ public class CategoriesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var result = await _categoryService.DeleteAsync(id, userId);
 

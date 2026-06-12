@@ -132,11 +132,49 @@ public class TaskService : ITaskService
             IsCompleted = taskItem.IsCompleted,
             DueDate = taskItem.DueDate,
             CategoryId = taskItem.CategoryId,
+            CategoryName = taskItem.Category?.Name,
             UserId = taskItem.UserId,
             CreatedAt = taskItem.CreatedAt,
             UpdatedAt = taskItem.UpdatedAt
         };
         return taskDto;
+    }
+    
+    public async Task<PagedResult<TaskDto>> GetPagedAsync(
+        int userId,
+        int page = 1,
+        int pageSize = 10,
+        string? search = null,
+        int? categoryId = null)
+    {
+        // 1. Валідація параметрів
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;  // максимум 100 елементів на сторінку
+
+        // 2. Викликаємо Repository
+        var (tasks, totalCount) = await _taskRepository.GetPagedAsync(
+            userId,
+            page,
+            pageSize,
+            search,
+            categoryId);
+
+        // 3. Конвертуємо Entity → DTO
+        var taskDtos = tasks.Select(MapToDto).ToList();
+
+        // 4. Обчислюємо TotalPages
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        // 5. Формуємо результат
+        return new PagedResult<TaskDto>
+        {
+            Items = taskDtos,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
     }
 }
 

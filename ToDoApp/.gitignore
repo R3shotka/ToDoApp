@@ -84,3 +84,6 @@ artifacts/
 *.db
 *.db-shm
 *.db-wal
+
+# Local settings with secrets
+**/appsettings.Development.json

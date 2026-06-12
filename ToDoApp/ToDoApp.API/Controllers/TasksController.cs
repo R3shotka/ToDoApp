@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using ToDoApp.BusinessLogic.DTOs;
 using ToDoApp.BusinessLogic.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ToDoApp.API.Controllers;
 
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TasksController : ControllerBase
 {
     private readonly ITaskService _taskService;
@@ -17,18 +20,22 @@ public class TasksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TaskDto>>> GetAll()
+    public async Task<ActionResult<PagedResult<TaskDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] int? categoryId = null)
     {
-        int userId = 1;
-        
-        var tasks = await _taskService.GetAllByUserAsync(userId);
-        return Ok(tasks);
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await _taskService.GetPagedAsync(userId, page, pageSize, search, categoryId);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<TaskDto>> GetById([FromRoute] int id)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         
         var task = await _taskService.GetByIdAsync(id,  userId);
         if (task == null)
@@ -41,7 +48,7 @@ public class TasksController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskDto dto)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         try
         {
@@ -57,7 +64,7 @@ public class TasksController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<TaskDto>> Update([FromRoute] int id, [FromBody] UpdateTaskDto dto)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         try
         {
@@ -77,7 +84,7 @@ public class TasksController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        int userId = 1;
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         var result = await _taskService.DeleteAsync(id, userId);
 
