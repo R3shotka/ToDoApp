@@ -1,17 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { TaskDto } from '@/types'
 
-defineProps<{ task: TaskDto }>()
+const props = defineProps<{ task: TaskDto }>()
 
 const emit = defineEmits<{
   toggle: [id: number]
   edit: [task: TaskDto]
   delete: [id: number]
 }>()
+
+const isOverdue = computed(() => {
+  if (!props.task.dueDate || props.task.isCompleted) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(props.task.dueDate)
+  due.setHours(0, 0, 0, 0)
+  return due < today
+})
 </script>
 
 <template>
-  <div class="task" :class="{ 'task--done': task.isCompleted }">
+  <div class="task" :class="{ 'task--done': task.isCompleted, 'task--overdue': isOverdue }">
     <label class="task__check-wrap" :title="task.isCompleted ? 'Mark incomplete' : 'Mark complete'">
       <input
         type="checkbox"
@@ -27,7 +37,7 @@ const emit = defineEmits<{
       <span v-if="task.description" class="task__description">{{ task.description }}</span>
       <div v-if="task.dueDate || task.categoryName" class="task__meta">
         <span v-if="task.categoryName" class="task__tag">{{ task.categoryName }}</span>
-        <span v-if="task.dueDate" class="task__date">
+        <span v-if="task.dueDate" class="task__date" :class="{ 'task__date--overdue': isOverdue }">
           {{ new Date(task.dueDate).toLocaleDateString('en', { month: 'short', day: 'numeric' }) }}
         </span>
       </div>
@@ -68,6 +78,11 @@ const emit = defineEmits<{
 
 .task--done {
   opacity: 0.5;
+}
+
+.task--overdue {
+  border-left: 3px solid var(--c-danger);
+  padding-left: calc(1rem - 3px);
 }
 
 /* ── Checkbox ── */
@@ -171,6 +186,10 @@ const emit = defineEmits<{
   font-size: 0.6875rem;
   color: var(--c-text-muted);
   font-weight: 500;
+}
+
+.task__date--overdue {
+  color: var(--c-danger);
 }
 
 /* ── Actions ── */
