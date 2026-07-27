@@ -23,7 +23,6 @@ function validate(): boolean {
   emailError.value = ''
   passwordError.value = ''
   let ok = true
-
   if (username.value.trim().length < 3) {
     usernameError.value = 'Мінімум 3 символи'
     ok = false
@@ -42,24 +41,15 @@ function validate(): boolean {
 async function submit() {
   error.value = ''
   if (!validate()) return
-
   loading.value = true
   try {
-    await auth.register({
-      username: username.value.trim(),
-      email: email.value.trim(),
-      password: password.value,
-    })
+    await auth.register({ username: username.value.trim(), email: email.value.trim(), password: password.value })
     router.push('/tasks')
   } catch (e: unknown) {
     if (isAxiosError(e)) {
-      if (e.response?.status === 400) {
-        error.value = typeof e.response.data === 'string'
-          ? e.response.data
-          : 'Помилка реєстрації'
-      } else {
-        error.value = 'Сервер недоступний. Спробуй пізніше.'
-      }
+      error.value = e.response?.status === 400
+        ? (typeof e.response.data === 'string' ? e.response.data : 'Помилка реєстрації')
+        : 'Сервер недоступний. Спробуй пізніше.'
     } else {
       error.value = 'Сервер недоступний. Спробуй пізніше.'
     }
@@ -75,162 +65,151 @@ function isAxiosError(e: unknown): e is { response?: { status: number; data?: un
 
 <template>
   <div class="auth-page">
-    <form class="auth-form" @submit.prevent="submit" novalidate>
-      <h1 class="auth-title">Реєстрація</h1>
-
-      <div class="field">
-        <label for="username">Логін</label>
-        <input
-          id="username"
-          v-model="username"
-          type="text"
-          autocomplete="username"
-          :class="{ invalid: usernameError }"
-        />
-        <span v-if="usernameError" class="field-error">{{ usernameError }}</span>
+    <div class="auth-card">
+      <div class="auth-card__logo">
+        <span class="auth-card__logo-icon">✓</span>
       </div>
+      <h1 class="auth-card__title">Create account</h1>
+      <p class="auth-card__subtitle">Start managing your tasks today</p>
 
-      <div class="field">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          autocomplete="email"
-          :class="{ invalid: emailError }"
-        />
-        <span v-if="emailError" class="field-error">{{ emailError }}</span>
-      </div>
+      <form @submit.prevent="submit" novalidate class="auth-form">
+        <div class="field">
+          <label class="field__label" for="username">Username</label>
+          <input
+            id="username"
+            v-model="username"
+            type="text"
+            autocomplete="username"
+            placeholder="Choose a username"
+            class="field__input"
+            :class="{ 'field__input--error': usernameError }"
+          />
+          <span v-if="usernameError" class="field__error">{{ usernameError }}</span>
+        </div>
 
-      <div class="field">
-        <label for="password">Пароль</label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          autocomplete="new-password"
-          :class="{ invalid: passwordError }"
-        />
-        <span v-if="passwordError" class="field-error">{{ passwordError }}</span>
-      </div>
+        <div class="field">
+          <label class="field__label" for="email">Email</label>
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            class="field__input"
+            :class="{ 'field__input--error': emailError }"
+          />
+          <span v-if="emailError" class="field__error">{{ emailError }}</span>
+        </div>
 
-      <div v-if="error" class="error-block">{{ error }}</div>
+        <div class="field">
+          <label class="field__label" for="password">Password</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="••••••••"
+            class="field__input"
+            :class="{ 'field__input--error': passwordError }"
+          />
+          <span v-if="passwordError" class="field__error">{{ passwordError }}</span>
+        </div>
 
-      <button type="submit" :disabled="loading" class="btn-primary">
-        {{ loading ? 'Завантаження...' : 'Зареєструватись' }}
-      </button>
+        <div v-if="error" class="error-block">{{ error }}</div>
 
-      <p class="auth-link">
-        Вже маєш акаунт?
-        <RouterLink to="/login">Увійти</RouterLink>
+        <button type="submit" :disabled="loading" class="btn btn--primary auth-form__submit">
+          {{ loading ? 'Creating account…' : 'Create account' }}
+        </button>
+      </form>
+
+      <p class="auth-card__footer">
+        Already have an account?
+        <RouterLink to="/login">Sign in</RouterLink>
       </p>
-    </form>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .auth-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 1rem;
-}
-
-.auth-form {
-  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  background: var(--c-bg);
 }
 
-.auth-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.field {
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--c-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2.25rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.field label {
-  font-size: 0.875rem;
-  font-weight: 500;
+.auth-card__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
 }
 
-.field input {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field input:focus {
-  border-color: #6366f1;
-}
-
-.field input.invalid {
-  border-color: #ef4444;
-}
-
-.field-error {
-  font-size: 0.75rem;
-  color: #ef4444;
-}
-
-.error-block {
-  padding: 0.75rem 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.375rem;
-  color: #b91c1c;
-  font-size: 0.875rem;
-}
-
-.btn-primary {
-  padding: 0.625rem 1rem;
-  background: #6366f1;
+.auth-card__logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--c-primary);
   color: #fff;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
+  border-radius: var(--r-md);
+  font-size: 1.375rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(91,91,214,.35);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #4f46e5;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.auth-link {
-  font-size: 0.875rem;
+.auth-card__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--c-text);
   text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.125rem;
 }
 
-.auth-link a {
-  color: #6366f1;
-  text-decoration: none;
+.auth-card__subtitle {
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+  text-align: center;
+  margin-bottom: 1.25rem;
 }
 
-.auth-link a:hover {
-  text-decoration: underline;
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-@media (min-width: 768px) {
-  .auth-form {
-    max-width: 400px;
-    margin: 0 auto;
-  }
+.auth-form__submit {
+  width: 100%;
+  height: 42px;
+  font-size: 0.9375rem;
+  margin-top: 0.25rem;
+}
+
+.auth-card__footer {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+  text-align: center;
+  margin-top: 1.25rem;
+}
+
+.auth-card__footer a {
+  color: var(--c-primary);
+  font-weight: 500;
 }
 </style>

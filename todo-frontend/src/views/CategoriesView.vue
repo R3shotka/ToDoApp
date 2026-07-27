@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import type { CategoryDto } from '@/types'
 import { useCategories } from '@/composables/useCategories'
+import AppLayout from '@/components/shared/AppLayout.vue'
 import CategoryForm from '@/components/categories/CategoryForm.vue'
 import CategoryList from '@/components/categories/CategoryList.vue'
 
@@ -36,16 +37,12 @@ function closeForm() {
 async function handleSave(name: string) {
   saving.value = true
   formError.value = null
-
   let ok: boolean
   if (editingCategory.value) {
-    const result = await editCategory(editingCategory.value.id, { name })
-    ok = result !== null
+    ok = (await editCategory(editingCategory.value.id, { name })) !== null
   } else {
-    const result = await addCategory({ name })
-    ok = result !== null
+    ok = (await addCategory({ name })) !== null
   }
-
   saving.value = false
   if (ok) {
     closeForm()
@@ -61,88 +58,96 @@ async function handleDelete(id: number) {
 </script>
 
 <template>
-  <div class="categories-view">
-    <div class="page-header">
-      <h1>Categories</h1>
-      <button class="btn btn--primary" @click="openCreate">+ New Category</button>
-    </div>
+  <AppLayout>
+    <div class="categories-view">
+      <div class="categories-view__header">
+        <div>
+          <h1 class="categories-view__title">Categories</h1>
+          <p class="categories-view__subtitle" v-if="!loading">
+            {{ categories.length }} categor{{ categories.length !== 1 ? 'ies' : 'y' }}
+          </p>
+        </div>
+        <button class="btn btn--primary" @click="openCreate">
+          <span class="btn-icon">+</span> New Category
+        </button>
+      </div>
 
-    <div v-if="formVisible" class="form-panel">
-      <h2 class="form-title">{{ editingCategory ? 'Edit Category' : 'New Category' }}</h2>
-      <CategoryForm
-        :category="editingCategory ?? undefined"
-        :saving="saving"
-        :server-error="formError"
-        @save="handleSave"
-        @cancel="closeForm"
+      <div v-if="formVisible" class="form-panel">
+        <h2 class="form-panel__title">
+          {{ editingCategory ? 'Edit category' : 'New category' }}
+        </h2>
+        <CategoryForm
+          :category="editingCategory ?? undefined"
+          :saving="saving"
+          :server-error="formError"
+          @save="handleSave"
+          @cancel="closeForm"
+        />
+      </div>
+
+      <div v-if="error && !formVisible" class="error-block">{{ error }}</div>
+
+      <CategoryList
+        :categories="categories"
+        :loading="loading"
+        @edit="openEdit"
+        @delete="handleDelete"
       />
     </div>
-
-    <p v-if="error && !formVisible" class="page-error">{{ error }}</p>
-
-    <CategoryList
-      :categories="categories"
-      :loading="loading"
-      @edit="openEdit"
-      @delete="handleDelete"
-    />
-  </div>
+  </AppLayout>
 </template>
 
 <style scoped>
 .categories-view {
   max-width: 600px;
   margin: 0 auto;
-  padding: 1rem;
 }
 
-.page-header {
+.categories-view__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-h1 {
+.categories-view__title {
   font-size: 1.5rem;
-  margin: 0;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.categories-view__subtitle {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+  margin-top: 0.125rem;
+}
+
+.btn-icon {
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .form-panel {
-  border: 1px solid var(--color-border, #e2e8f0);
-  border-radius: 8px;
-  padding: 1rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 1.25rem;
   margin-bottom: 1.5rem;
-  background: var(--color-surface, #f7fafc);
+  box-shadow: var(--shadow-sm);
 }
 
-.form-title {
-  font-size: 1rem;
-  margin: 0 0 0.75rem;
-  color: var(--color-text-muted, #718096);
-}
-
-.page-error {
-  color: #e53e3e;
+.form-panel__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text-2);
   margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
-.btn {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.btn--primary {
-  background: var(--color-primary, #3b82f6);
-  color: #fff;
-}
-
-@media (min-width: 768px) {
-  .categories-view {
-    padding: 2rem 1rem;
-  }
+.error-block {
+  margin-bottom: 1rem;
 }
 </style>

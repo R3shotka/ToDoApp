@@ -11,16 +11,26 @@ const emit = defineEmits<{
 
 <template>
   <div class="pagination" v-if="totalPages > 1">
-    <button :disabled="page <= 1" @click="emit('change', page - 1)" class="pagination__btn">
-      Prev
-    </button>
-    <span class="pagination__info">Page {{ page }} of {{ totalPages }}</span>
     <button
+      class="pagination__btn"
+      :disabled="page <= 1"
+      @click="emit('change', page - 1)"
+      aria-label="Previous page"
+    >
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="pagination__info">{{ page }} / {{ totalPages }}</span>
+    <button
+      class="pagination__btn"
       :disabled="page >= totalPages"
       @click="emit('change', page + 1)"
-      class="pagination__btn"
+      aria-label="Next page"
     >
-      Next
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
   </div>
 </template>
@@ -30,26 +40,40 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
 }
 
 .pagination__btn {
-  padding: 0.4rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-muted);
   cursor: pointer;
-  font-size: 0.9rem;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.pagination__btn:hover:not(:disabled) {
+  background: var(--c-primary-lt);
+  color: var(--c-primary);
+  border-color: var(--c-primary);
 }
 
 .pagination__btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
 .pagination__info {
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+  min-width: 3rem;
+  text-align: center;
 }
 </style>

@@ -10,57 +10,101 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <li class="category-item">
-    <span class="category-name">{{ category.name }}</span>
-    <div class="category-actions">
-      <button class="btn btn--sm" @click="emit('edit', category)">Edit</button>
-      <button class="btn btn--sm btn--danger" @click="emit('delete', category.id)">Delete</button>
+  <li class="cat-item">
+    <div class="cat-item__left">
+      <span class="cat-item__dot"></span>
+      <span class="cat-item__name">{{ category.name }}</span>
+    </div>
+    <div class="cat-item__actions">
+      <button class="cat-item__btn" @click="emit('edit', category)" title="Edit">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M11.5 1.5a2.121 2.121 0 1 1 3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Edit
+      </button>
+      <button class="cat-item__btn cat-item__btn--danger" @click="emit('delete', category.id)" title="Delete">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Delete
+      </button>
     </div>
   </li>
 </template>
 
 <style scoped>
-.category-item {
+.cat-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--color-border, #e2e8f0);
-  border-radius: 8px;
-  background: var(--color-surface, #fff);
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--c-surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--t-base), transform var(--t-base);
 }
 
-.category-name {
-  font-size: 1rem;
-  color: var(--color-text, #1a202c);
+.cat-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-.category-actions {
+.cat-item__left {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
 }
 
-.btn {
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--color-border, #ccc);
-  border-radius: 5px;
-  font-size: 0.85rem;
-  cursor: pointer;
+.cat-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.cat-item__name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-item__actions {
+  display: flex;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.cat-item__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xs);
   background: transparent;
-  color: var(--color-text, #333);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
 
-.btn--sm {
-  padding: 0.25rem 0.6rem;
+.cat-item__btn:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  border-color: var(--c-border);
 }
 
-.btn--danger {
-  border-color: #e53e3e;
-  color: #e53e3e;
-}
-
-.btn--danger:hover {
-  background: #e53e3e;
-  color: #fff;
+.cat-item__btn--danger:hover {
+  background: var(--c-danger-lt);
+  color: var(--c-danger);
+  border-color: var(--c-danger-border);
 }
 </style>

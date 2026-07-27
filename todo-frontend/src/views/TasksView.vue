@@ -3,12 +3,13 @@ import { ref, onMounted } from 'vue'
 import type { TaskDto } from '@/types'
 import { useTasks } from '@/composables/useTasks'
 import { useCategories } from '@/composables/useCategories'
+import AppLayout from '@/components/shared/AppLayout.vue'
 import TaskFilter from '@/components/tasks/TaskFilter.vue'
 import TaskList from '@/components/tasks/TaskList.vue'
 import TaskForm from '@/components/tasks/TaskForm.vue'
 import BasePagination from '@/components/shared/BasePagination.vue'
 
-const { tasks, loading, error, page, totalPages, search, categoryId, fetchTasks, setSearch, setCategoryId, setPage, addTask, editTask, toggleTask, deleteTask } = useTasks()
+const { tasks, loading, error, page, totalPages, search, categoryId, fetchTasks, setSearch, setCategoryId, setPage, toggleTask, deleteTask } = useTasks()
 const { categories, fetchAll: fetchCategories } = useCategories()
 
 const showForm = ref(false)
@@ -45,39 +46,45 @@ async function onSaved(task: TaskDto) {
 
 async function onDelete(id: number) {
   if (!window.confirm('Delete this task?')) return
-  const ok = await deleteTask(id)
-  if (!ok && error.value) {
-    // error already set by deleteTask, displayed in template
-  }
+  await deleteTask(id)
 }
 </script>
 
 <template>
-  <div class="tasks-view">
-    <div class="tasks-view__header">
-      <h1 class="tasks-view__title">Tasks</h1>
-      <button @click="openCreateForm" class="btn btn--primary">New Task</button>
+  <AppLayout>
+    <div class="tasks-view">
+      <div class="tasks-view__header">
+        <div>
+          <h1 class="tasks-view__title">My Tasks</h1>
+          <p class="tasks-view__subtitle" v-if="!loading">
+            {{ tasks.length }} task{{ tasks.length !== 1 ? 's' : '' }}
+          </p>
+        </div>
+        <button @click="openCreateForm" class="btn btn--primary">
+          <span class="btn-icon">+</span> New Task
+        </button>
+      </div>
+
+      <TaskFilter
+        :search="search"
+        :categoryId="categoryId"
+        :categories="categories"
+        @update:search="setSearch"
+        @update:categoryId="setCategoryId"
+      />
+
+      <div v-if="error" class="error-block">{{ error }}</div>
+
+      <TaskList
+        :tasks="tasks"
+        :loading="loading"
+        @toggle="toggleTask"
+        @edit="openEditForm"
+        @delete="onDelete"
+      />
+
+      <BasePagination :page="page" :totalPages="totalPages" @change="setPage" />
     </div>
-
-    <TaskFilter
-      :search="search"
-      :categoryId="categoryId"
-      :categories="categories"
-      @update:search="setSearch"
-      @update:categoryId="setCategoryId"
-    />
-
-    <p v-if="error" class="tasks-view__error">{{ error }}</p>
-
-    <TaskList
-      :tasks="tasks"
-      :loading="loading"
-      @toggle="toggleTask"
-      @edit="openEditForm"
-      @delete="onDelete"
-    />
-
-    <BasePagination :page="page" :totalPages="totalPages" @change="setPage" />
 
     <TaskForm
       v-if="showForm"
@@ -86,47 +93,44 @@ async function onDelete(id: number) {
       @saved="onSaved"
       @cancel="closeForm"
     />
-  </div>
+  </AppLayout>
 </template>
 
 <style scoped>
 .tasks-view {
   max-width: 720px;
   margin: 0 auto;
-  padding: 1rem;
 }
 
 .tasks-view__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .tasks-view__title {
-  margin: 0;
   font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
-.tasks-view__error {
-  margin: 0 0 1rem;
-  padding: 0.6rem 0.75rem;
-  background: #fde8e8;
-  color: #c81e1e;
-  border-radius: 4px;
-  font-size: 0.875rem;
+.tasks-view__subtitle {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+  margin-top: 0.125rem;
 }
 
-.btn {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
+.btn-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+  margin-right: -0.125rem;
 }
 
-.btn--primary {
-  background: #1a56db;
-  color: #fff;
+.error-block {
+  margin-bottom: 1rem;
 }
 </style>
