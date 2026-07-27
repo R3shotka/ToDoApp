@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { TaskDto, CreateTaskDto, UpdateTaskDto } from '@/types'
 import * as tasksApi from '@/api/tasks'
+import { extractError } from '@/utils/extractError'
 
 const PAGE_SIZE = 10
 
@@ -13,9 +14,9 @@ export function useTasks() {
   const search = ref('')
   const categoryId = ref<number | undefined>(undefined)
 
-  async function fetchTasks() {
+  async function fetchTasks(preserveError = false) {
     loading.value = true
-    error.value = null
+    if (!preserveError) error.value = null
     try {
       const result = await tasksApi.getAll({
         page: page.value,
@@ -88,7 +89,7 @@ export function useTasks() {
     } catch (e: unknown) {
       task.isCompleted = original
       error.value = extractError(e, 'Failed to update task.')
-      await fetchTasks()
+      await fetchTasks(true)
     }
   }
 
@@ -100,7 +101,7 @@ export function useTasks() {
       return true
     } catch (e: unknown) {
       error.value = extractError(e, 'Failed to delete task.')
-      await fetchTasks()
+      await fetchTasks(true)
       return false
     }
   }
@@ -122,22 +123,4 @@ export function useTasks() {
     toggleTask,
     deleteTask,
   }
-}
-
-function extractError(e: unknown, fallback: string): string {
-  if (
-    e &&
-    typeof e === 'object' &&
-    'response' in e &&
-    e.response &&
-    typeof e.response === 'object' &&
-    'data' in e.response
-  ) {
-    const data = (e.response as { data: unknown }).data
-    if (typeof data === 'string' && data.trim()) return data.trim()
-    if (data && typeof data === 'object' && 'message' in data) {
-      return String((data as { message: unknown }).message)
-    }
-  }
-  return fallback
 }

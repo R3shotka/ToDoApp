@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { TaskDto } from '@/types'
+import { isOverdue as checkOverdue } from '@/utils/dateUtils'
 
 const props = defineProps<{ task: TaskDto }>()
 
@@ -10,14 +11,7 @@ const emit = defineEmits<{
   delete: [id: number]
 }>()
 
-const isOverdue = computed(() => {
-  if (!props.task.dueDate || props.task.isCompleted) return false
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const due = new Date(props.task.dueDate)
-  due.setHours(0, 0, 0, 0)
-  return due < today
-})
+const isOverdue = computed(() => checkOverdue(props.task.dueDate, props.task.isCompleted))
 </script>
 
 <template>
